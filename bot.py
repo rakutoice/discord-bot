@@ -1,24 +1,28 @@
-import discord
 from discord.ext import commands
+from aiohttp import web
+import asyncio
+import os
 
-intents = discord.Intents.default()
-intents.message_content = True
+bot = commands.Bot(command_prefix="!")
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+async def healthcheck(request):
+    return web.Response(text="OK")
+
+async def start_web_server():
+    app = web.Application()
+    app.router.add_get("/", healthcheck)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", 8000)
+    await site.start()
+    print("Healthcheck server running")
 
 @bot.event
 async def on_ready():
     print(f"ログイン完了: {bot.user}")
 
-@bot.command()
-async def 生成(ctx):
-    await ctx.send("<:green_portion:1444959334550208564>")
+async def main():
+    await start_web_server()
+    await bot.start(os.environ["DISCORD_TOKEN"])
 
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-TOKEN = os.getenv("DISCORD_TOKEN")
-
-bot.run(TOKEN)
-
+asyncio.run(main())
