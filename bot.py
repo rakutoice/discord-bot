@@ -1,28 +1,26 @@
-from discord.ext import commands
-from aiohttp import web
-import asyncio
 import os
+import discord
+from discord.ext import commands
+from dotenv import load_dotenv
 
-bot = commands.Bot(command_prefix="!")
+# .env を読み込む（※Koyebでは Environment variables が使われる）
+load_dotenv()
+TOKEN = os.getenv("DISCORD_TOKEN")
 
-async def healthcheck(request):
-    return web.Response(text="OK")
+# intents 設定（必須）
+intents = discord.Intents.default()
+intents.message_content = True
 
-async def start_web_server():
-    app = web.Application()
-    app.router.add_get("/", healthcheck)
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", 8000)
-    await site.start()
-    print("Healthcheck server running")
+# Bot 作成（★ここが重要）
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
     print(f"ログイン完了: {bot.user}")
 
-async def main():
-    await start_web_server()
-    await bot.start(os.environ["DISCORD_TOKEN"])
+@bot.command()
+async def 生成(ctx):
+    await ctx.send("<:green_portion:1444959334550208564>")
 
-asyncio.run(main())
+# Bot 起動
+bot.run(TOKEN)
